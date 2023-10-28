@@ -1,0 +1,41 @@
+// ==UserScript==
+// @name         Marvell Etx
+// @namespace    http://tampermonkey.net/
+// @version      0.1
+// @description  Etx Modification!
+// @author       You
+// @match        https://*.marvell.com/etx/*
+// @icon         https://thumbs2.imgbox.com/2f/99/uIq6YP8R_t.png
+// @grant        none
+// @run-at       document-end
+// ==/UserScript==
+
+(function() {
+    'use strict';
+    waitForElementToExist('#dashboardMainPanel > div.style-disclosurePanelProfiles > div').then(elements => {
+        console.log('Moving Shared View Block To Bottom');
+        let list = elements
+        list.appendChild(list.firstElementChild);
+    });
+
+})();
+
+function waitForElementToExist(selector) {
+    return new Promise(resolve => {
+        if (document.querySelector(selector)) {
+            return resolve(document.querySelector(selector));
+        }
+
+        const observer = new MutationObserver(() => {
+            if (document.querySelector(selector)) {
+                resolve(document.querySelector(selector));
+                observer.disconnect();
+            }
+        });
+
+        observer.observe(document.body, {
+            subtree: true,
+            childList: true,
+        });
+    });
+}
