@@ -1,0 +1,91 @@
+// ==UserScript==
+// @name         Crex Audio
+// @namespace    http://tampermonkey.net/
+// @version      0.1
+// @description  try to take over the world!
+// @author       You
+// @match        https://crex.live/*
+// @icon         https://crex.live/assets/icon/favicon.ico
+// @grant        none
+// @run-at       document-idle
+// ==/UserScript==
+
+var isMute = true; // Declare isMute globally
+
+(function() {
+    'use strict';
+    waitForElementToExist('body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div > span').then(element => {
+    console.log('The element exists', element);
+
+    var mySpan = element; // Use the element returned by waitForElementToExist
+    if (isMute) {
+          mySpan.setAttribute("title", "Muted");
+      } else {
+          mySpan.setAttribute("title", "UnMuted");
+      }
+    function spanClickEvent() {
+      isMute = !isMute;
+      console.info(isMute);
+      if (isMute) {
+          mySpan.setAttribute("title", "Muted");
+      } else {
+          mySpan.setAttribute("title", "UnMuted");
+      }
+    }
+    mySpan.addEventListener("click", spanClickEvent);
+
+    let one = element; // Use the same element for monitoring changes
+    monitorChangesBySelector(one, changeCallback);
+  });
+})();
+
+function monitorChangesBySelector(targetElement, callback) {
+  const observer = new MutationObserver((mutationsList, observer) => {
+    callback();
+  });
+  const config = { childList: true, characterData: true, subtree: true, attributes: false};
+  observer.observe(targetElement, config);
+}
+
+function changeCallback() {
+  let one = document.querySelector("body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div > span");
+  one.style.cursor = "pointer";
+  console.info(one.innerText);
+  audioAnnouncer(one.innerText);
+}
+
+function audioAnnouncer(text) {
+  if ('speechSynthesis' in window) {
+    const synth = window.speechSynthesis;
+
+    function speakText(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      synth.speak(utterance);
+    }
+    if (!isMute) {
+      speakText(text);
+    }
+  } else {
+    console.error('Text-to-speech is not supported in this browser.');
+  }
+}
+
+function waitForElementToExist(selector) {
+  return new Promise(resolve => {
+    if (document.querySelector(selector)) {
+      return resolve(document.querySelector(selector));
+    }
+
+    const observer = new MutationObserver(() => {
+      if (document.querySelector(selector)) {
+        resolve(document.querySelector(selector));
+        observer.disconnect();
+      }
+    });
+
+    observer.observe(document.body, {
+      subtree: true,
+      childList: true,
+    });
+  });
+}
