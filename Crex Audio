@@ -14,21 +14,38 @@ var isMute = true; // Declare isMute globally
 
 (function() {
     'use strict';
-    waitForElementToExist('body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div > span').then(element => {
-    console.log('The element exists', element);
+    waitForElementToExist("body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div").then(element => {
+        var myDiv = element;
+        //console.info(myDiv)
+        myDiv.style.display = "flex";
+        myDiv.style.flexDirection = "column";
+        const newElement = document.createElement("span");
+        newElement.textContent = "🔇";
+        newElement.setAttribute("id", "mute-btn");
+        newElement.setAttribute("_ngcontent-app-root-c17", "");
+        newElement.className = "font3 font4";
+        newElement.style.cursor = "pointer";
+        myDiv.insertBefore(newElement, myDiv.firstChild);
+    });
 
-    var mySpan = element; // Use the element returned by waitForElementToExist
+    waitForElementToExist('body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div > span:nth-child(2)').then(element => {
+
+    var mySpan = document.querySelector("#mute-btn")
     if (isMute) {
+          mySpan.textContent = "🔇";
           mySpan.setAttribute("title", "Muted");
       } else {
+          mySpan.textContent = "🔊";
           mySpan.setAttribute("title", "UnMuted");
       }
     function spanClickEvent() {
       isMute = !isMute;
-      console.info(isMute);
+      //console.info(isMute);
       if (isMute) {
+          mySpan.textContent = "🔇";
           mySpan.setAttribute("title", "Muted");
       } else {
+          mySpan.textContent = "🔊";
           mySpan.setAttribute("title", "UnMuted");
       }
     }
@@ -48,9 +65,9 @@ function monitorChangesBySelector(targetElement, callback) {
 }
 
 function changeCallback() {
-  let one = document.querySelector("body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div > span");
+  let one = document.querySelector("body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div > span:nth-child(2)");
   one.style.cursor = "pointer";
-  console.info(one.innerText);
+  //console.info(one.innerText);
   audioAnnouncer(one.innerText);
 }
 
