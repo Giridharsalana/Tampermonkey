@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crex Audio
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.2
 // @description  try to take over the world!
 // @author       You
 // @match        https://crex.live/*
@@ -98,7 +98,7 @@ function scoreAnnouncer(text) {
         Promise.all([promise1, promise2])
             .then(([runs_wkt, overs]) => {
                 //console.info(runs_wkt + ' ' + overs);
-                let Score_Script = runs_wkt.replace('-', ' Runs For Loss of ') + ' Wickets, ' + overs + ' Overs Gone.'
+                let Score_Script = runs_wkt.replace('-', ' Runs For ') + ' Wickets and ' + overs + ' Overs.'
                 //console.info(Score_Script);
                 audioAnnouncer(Score_Script);
             })
