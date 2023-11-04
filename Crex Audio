@@ -26,83 +26,105 @@ var isMute = true; // Declare isMute globally
         newElement.className = "font3 font4";
         newElement.style.cursor = "pointer";
         myDiv.insertBefore(newElement, myDiv.firstChild);
+
+        var mySpan = newElement;
+        //console.info(mySpan)
+        if (isMute) {
+            mySpan.textContent = "🔇";
+            mySpan.setAttribute("title", "Muted");
+        } else {
+            mySpan.textContent = "🔊";
+            mySpan.setAttribute("title", "UnMuted");
+        }
+        function spanClickEvent() {
+            isMute = !isMute;
+            //console.info(isMute);
+            if (isMute) {
+                mySpan.textContent = "🔇";
+                mySpan.setAttribute("title", "Muted");
+            } else {
+                mySpan.textContent = "🔊";
+                mySpan.setAttribute("title", "UnMuted");
+            }
+        }
+        mySpan.addEventListener("click", spanClickEvent);
     });
 
     waitForElementToExist('body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div > span:nth-child(2)').then(element => {
-
-    var mySpan = document.querySelector("#mute-btn")
-    if (isMute) {
-          mySpan.textContent = "🔇";
-          mySpan.setAttribute("title", "Muted");
-      } else {
-          mySpan.textContent = "🔊";
-          mySpan.setAttribute("title", "UnMuted");
-      }
-    function spanClickEvent() {
-      isMute = !isMute;
-      //console.info(isMute);
-      if (isMute) {
-          mySpan.textContent = "🔇";
-          mySpan.setAttribute("title", "Muted");
-      } else {
-          mySpan.textContent = "🔊";
-          mySpan.setAttribute("title", "UnMuted");
-      }
-    }
-    mySpan.addEventListener("click", spanClickEvent);
-
-    let one = element; // Use the same element for monitoring changes
-    monitorChangesBySelector(one, changeCallback);
-  });
+        let one = element; // Use the same element for monitoring changes
+        monitorChangesBySelector(one, changeCallback);
+    });
 })();
 
 function monitorChangesBySelector(targetElement, callback) {
-  const observer = new MutationObserver((mutationsList, observer) => {
-    callback();
-  });
-  const config = { childList: true, characterData: true, subtree: true, attributes: false};
-  observer.observe(targetElement, config);
+    const observer = new MutationObserver((mutationsList, observer) => {
+        callback();
+    });
+    const config = { childList: true, characterData: true, subtree: true, attributes: false};
+    observer.observe(targetElement, config);
 }
 
 function changeCallback() {
-  let one = document.querySelector("body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div > span:nth-child(2)");
-  one.style.cursor = "pointer";
-  //console.info(one.innerText);
-  audioAnnouncer(one.innerText);
+    let one = document.querySelector("body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div > span:nth-child(2)");
+    one.style.cursor = "pointer";
+    //console.info(one.innerText);
+    audioAnnouncer(one.innerText);
+    scoreAnnouncer(one.innerText);
 }
 
 function audioAnnouncer(text) {
-  if ('speechSynthesis' in window) {
-    const synth = window.speechSynthesis;
-
-    function speakText(text) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      synth.speak(utterance);
+    if ('speechSynthesis' in window) {
+        const synth = window.speechSynthesis;
+        function speakText(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            //utterance.lang='en-US';
+            synth.speak(utterance);
+        }
+        if (!isMute) {
+            speakText(text);
+        }
+    } else {
+        console.error('Text-to-speech is not supported in this browser.');
     }
-    if (!isMute) {
-      speakText(text);
-    }
-  } else {
-    console.error('Text-to-speech is not supported in this browser.');
-  }
 }
 
-function waitForElementToExist(selector) {
-  return new Promise(resolve => {
-    if (document.querySelector(selector)) {
-      return resolve(document.querySelector(selector));
+function scoreAnnouncer(text) {
+    if (text.toLowerCase() === 'over') {
+        const selector1 = 'body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div:nth-child(1) > div.team-content > div.team-score > div > span:nth-child(1)';
+        const selector2 = 'body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div:nth-child(1) > div.team-content > div.team-score > div > span:nth-child(2)';
+        const promise1 = waitForElementToExist(selector1).then(element => element.innerText);
+        const promise2 = waitForElementToExist(selector2).then(element => element.innerText);
+
+        Promise.all([promise1, promise2])
+            .then(([runs_wkt, overs]) => {
+                //console.info(runs_wkt + ' ' + overs);
+                let Score_Script = runs_wkt.replace('-', ' Runs For Loss of ') + ' Wickets, ' + overs + ' Overs Gone.'
+                //console.info(Score_Script);
+                audioAnnouncer(Score_Script);
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
     }
+}
 
-    const observer = new MutationObserver(() => {
-      if (document.querySelector(selector)) {
-        resolve(document.querySelector(selector));
-        observer.disconnect();
-      }
-    });
 
-    observer.observe(document.body, {
-      subtree: true,
-      childList: true,
+function waitForElementToExist(selector) {
+    return new Promise(resolve => {
+        if (document.querySelector(selector)) {
+            return resolve(document.querySelector(selector));
+        }
+
+        const observer = new MutationObserver(() => {
+            if (document.querySelector(selector)) {
+                resolve(document.querySelector(selector));
+                observer.disconnect();
+            }
+        });
+
+        observer.observe(document.body, {
+            subtree: true,
+            childList: true,
+        });
     });
-  });
 }
