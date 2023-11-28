@@ -48,12 +48,18 @@ var isMute = true; // Declare isMute globally
             }
         }
         mySpan.addEventListener("click", spanClickEvent);
+
+        document.addEventListener('keydown', function(event) {
+        if (event.key === 'm') {
+            mySpan.click();
+        }
     });
 
     waitForElementToExist('body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div > span:nth-child(2)').then(element => {
         let one = element; // Use the same element for monitoring changes
         monitorChangesBySelector(one, changeCallback);
     });
+});
 })();
 
 function monitorChangesBySelector(targetElement, callback) {
