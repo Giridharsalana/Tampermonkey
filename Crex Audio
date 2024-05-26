@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crex Audio
 // @namespace    http://tampermonkey.net/
-// @version      0.25
+// @version      0.26
 // @description  try to take over the world!
 // @author       You
 // @match        https://crex.live/*
@@ -10,8 +10,13 @@
 // @run-at       document-idle
 // ==/UserScript==
 
-var isMute = true; // Declare isMute globally
-var volume = '50';
+var isMute = localStorage.getItem('isMute');
+var volume = localStorage.getItem('volume');
+
+isMute = isMute !== null ? isMute: true;
+volume = volume !== null ? volume: '50';
+
+isMute = isMute === 'true'; // String to boolean conversion.
 
 (function() {
     'use strict';
@@ -61,8 +66,9 @@ var volume = '50';
         //myDiv.appendChild(volumeSliderContainer);
 
         var mySpan = newElement;
-        //console.info(mySpan)
+        //console.info("isMute:", isMute);
         if (isMute) {
+            console.info('g');
             mySpan.textContent = "🔇";
             mySpan.setAttribute("title", "Muted");
         } else {
@@ -72,6 +78,7 @@ var volume = '50';
         function spanClickEvent() {
             isMute = !isMute;
             //console.info(isMute);
+            localStorage.setItem('isMute', isMute);
             if (isMute) {
                 mySpan.textContent = "🔇";
                 mySpan.setAttribute("title", "Muted");
@@ -91,6 +98,7 @@ var volume = '50';
         volumeSlider.addEventListener('input', function() {
             //console.info('Volume:', volumeSlider.value);
             volume = volumeSlider.value;
+            localStorage.setItem('volume', volume);
         });
 
         waitForElementToExist('body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div > span:nth-child(3)').then(element => {
