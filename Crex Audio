@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crex Audio
 // @namespace    http://tampermonkey.net/
-// @version      0.22
+// @version      0.23
 // @description  try to take over the world!
 // @author       You
 // @match        https://crex.live/*
@@ -11,6 +11,7 @@
 // ==/UserScript==
 
 var isMute = true; // Declare isMute globally
+var volume = '50';
 
 (function() {
     'use strict';
@@ -25,7 +26,36 @@ var isMute = true; // Declare isMute globally
         newElement.setAttribute("_ngcontent-app-root-c17", "");
         newElement.className = "font3 font4";
         newElement.style.cursor = "pointer";
+
+        const volumeSliderContainer = document.createElement('span');
+        volumeSliderContainer.className = 'volume-slider-container';
+
+        // Create the low volume icon
+        const lowVolumeIcon = document.createElement('span');
+        lowVolumeIcon.className = 'volume-icon';
+        lowVolumeIcon.textContent = '🔉';
+
+        // Create the volume slider
+        const volumeSlider = document.createElement('input');
+        volumeSlider.type = 'range';
+        volumeSlider.className = 'volume-slider';
+        volumeSlider.min = '0';
+        volumeSlider.max = '100';
+        volumeSlider.value = volume;
+
+        // Create the high volume icon
+        const highVolumeIcon = document.createElement('span');
+        highVolumeIcon.className = 'volume-icon';
+        highVolumeIcon.textContent = '🔊';
+
+        // Append the elements to the volume slider container
+        volumeSliderContainer.appendChild(lowVolumeIcon);
+        volumeSliderContainer.appendChild(volumeSlider);
+        volumeSliderContainer.appendChild(highVolumeIcon);
+
         myDiv.insertBefore(newElement, myDiv.firstChild);
+        myDiv.insertBefore(volumeSliderContainer, myDiv.firstChild.nextSibling);
+        //myDiv.appendChild(volumeSliderContainer);
 
         var mySpan = newElement;
         //console.info(mySpan)
@@ -50,16 +80,21 @@ var isMute = true; // Declare isMute globally
         mySpan.addEventListener("click", spanClickEvent);
 
         document.addEventListener('keydown', function(event) {
-        if (event.key === 'm') {
-            mySpan.click();
-        }
-    });
+            if (event.key === 'm') {
+                mySpan.click();
+            }
+        });
 
-    waitForElementToExist('body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div > span:nth-child(2)').then(element => {
-        let one = element; // Use the same element for monitoring changes
-        monitorChangesBySelector(one, changeCallback);
+        volumeSlider.addEventListener('input', function() {
+            //console.info('Volume:', volumeSlider.value);
+            volume = volumeSlider.value;
+        });
+
+        waitForElementToExist('body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div > span:nth-child(3)').then(element => {
+            let one = element; // Use the same element for monitoring changes
+            monitorChangesBySelector(one, changeCallback);
+        });
     });
-});
 })();
 
 function monitorChangesBySelector(targetElement, callback) {
@@ -71,7 +106,7 @@ function monitorChangesBySelector(targetElement, callback) {
 }
 
 function changeCallback() {
-    let one = document.querySelector("body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div > span:nth-child(2)");
+    let one = document.querySelector("body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div > span:nth-child(3)");
     one.style.cursor = "pointer";
     //console.info(one.innerText);
     audioAnnouncer(one.innerText);
@@ -84,6 +119,7 @@ function audioAnnouncer(text) {
         function speakText(text) {
             const utterance = new SpeechSynthesisUtterance(text);
             //utterance.lang='en-US';
+            utterance.volume = convertVolume(volume);
             synth.speak(utterance);
         }
         if (!isMute) {
@@ -103,17 +139,24 @@ function scoreAnnouncer(text) {
 
         Promise.all([promise1, promise2])
             .then(([runs_wkt, overs]) => {
-                //console.info(runs_wkt + ' ' + overs);
-                let Score_Script = runs_wkt.replace('-', ' Runs For ') + ' Wickets and ' + parseInt(overs) + ' Overs.'
-                //console.info(Score_Script);
-                audioAnnouncer(Score_Script);
-            })
+            //console.info(runs_wkt + ' ' + overs);
+            let Score_Script = runs_wkt.replace('-', ' Runs For ') + ' Wickets and ' + parseInt(overs) + ' Overs.'
+            //console.info(Score_Script);
+            audioAnnouncer(Score_Script);
+        })
             .catch(error => {
-                console.error("Error:", error);
-            });
+            console.error("Error:", error);
+        });
     }
 }
 
+function convertVolume(volumeString) {
+    let volumeInt = parseInt(volumeString, 10);
+    if (isNaN(volumeInt) || volumeInt < 0 || volumeInt > 100) {
+        throw new Error("Volume must be a string representing a number between 0 and 100.");
+    }
+    return volumeInt / 100;
+}
 
 function waitForElementToExist(selector) {
     return new Promise(resolve => {
