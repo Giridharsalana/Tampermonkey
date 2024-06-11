@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crex Audio
 // @namespace    http://tampermonkey.net/
-// @version      0.45
+// @version      0.5
 // @description  try to take over the world!
 // @author       You
 // @match        https://crex.live/*
@@ -18,21 +18,47 @@ volume = volume !== null ? volume: '50';
 
 isMute = isMute === 'true'; // String to boolean conversion.
 
+const container_div = 'body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div';
+const score_element = 'body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div > span';
+const score_selector1 = 'body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div:nth-child(1) > div.team-content > div.team-score > div > span:nth-child(1)';
+const score_selector2 = 'body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div:nth-child(1) > div.team-content > div.team-score > div > span:nth-child(2)';
+
 (function() {
     'use strict';
-    waitForElementToExist("body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div").then(element => {
+    waitForElementToExist(container_div).then(element => {
         var myDiv = element;
         //console.info(myDiv)
         myDiv.style.display = "flex";
         myDiv.style.flexDirection = "column";
-        const newElement = document.createElement("span");
-        newElement.textContent = "🔇";
-        newElement.setAttribute("id", "mute-btn");
-        newElement.setAttribute("_ngcontent-app-root-c17", "");
-        newElement.className = "font3 font4";
-        newElement.style.cursor = "pointer";
 
-        const volumeSliderContainer = document.createElement('span');
+        const voiceSelector_Elem = document.createElement("div");
+        const voiceSelector = document.createElement('select');
+        voiceSelector.id = 'voiceSelect';
+        voiceSelector.className = "none";
+
+        voiceSelector_Elem.appendChild(voiceSelector);
+
+        const TopElement = document.createElement("div");
+        TopElement.style.display = 'flex';
+        TopElement.style.alignItems = 'center';
+        TopElement.style.padding = '10px';
+
+
+
+        const newElement_1 = document.createElement("div");
+        newElement_1.textContent = "🔇";
+        newElement_1.id = "mute-btn";
+        newElement_1.style.cursor = "pointer";
+        newElement_1.style.padding = '10px';
+
+        const newElement_2 = document.createElement("div");
+        newElement_2.textContent = "🔇";
+        newElement_2.id = "mute-btn";
+        newElement_2.style.cursor = "pointer";
+        newElement_2.style.padding = '10px';
+        //newElement.setAttribute('_ngcontent-app-root-c17', '');
+
+        const volumeSliderContainer = document.createElement('div');
         volumeSliderContainer.className = 'volume-slider-container';
 
         // Create the low volume icon
@@ -61,47 +87,63 @@ isMute = isMute === 'true'; // String to boolean conversion.
         volumeSliderContainer.style.display = 'flex';
         volumeSliderContainer.style.alignItems = 'center';
 
-        myDiv.insertBefore(newElement, myDiv.firstChild);
-        myDiv.insertBefore(volumeSliderContainer, myDiv.firstChild.nextSibling);
-        //myDiv.appendChild(volumeSliderContainer);
+        TopElement.appendChild(newElement_1);
+        TopElement.appendChild(voiceSelector_Elem);
+        TopElement.appendChild(newElement_2);
 
-        var mySpan = newElement;
-        //console.info("isMute:", isMute);
+        myDiv.insertBefore(TopElement, myDiv.firstChild);
+        myDiv.insertBefore(volumeSliderContainer, myDiv.firstChild.nextSibling);
+        //myDiv.appendChild(voiceSelector_Elem);
+        //myDiv.insertBefore(volumeSliderContainer, myDiv.firstChild.nextSibling);
+
         if (isMute) {
-            mySpan.textContent = "🔇";
-            mySpan.setAttribute("title", "Muted");
+            newElement_1.textContent = "🔇";
+            newElement_2.textContent = "🔇";
+            newElement_1.setAttribute("title", "Muted");
+            newElement_2.setAttribute("title", "Muted");
         } else {
-            mySpan.textContent = "🔊";
-            mySpan.setAttribute("title", "UnMuted");
+            newElement_1.textContent = "🔊";
+            newElement_2.textContent = "🔊";
+            newElement_1.setAttribute("title", "UnMuted");
+            newElement_2.setAttribute("title", "UnMuted");
         }
         function spanClickEvent() {
             isMute = !isMute;
             //console.info(isMute);
             localStorage.setItem('isMute', isMute);
             if (isMute) {
-                mySpan.textContent = "🔇";
-                mySpan.setAttribute("title", "Muted");
+                newElement_1.textContent = "🔇";
+                newElement_2.textContent = "🔇";
+                newElement_1.setAttribute("title", "Muted");
+                newElement_2.setAttribute("title", "Muted");
             } else {
-                mySpan.textContent = "🔊";
-                mySpan.setAttribute("title", "UnMuted");
+                newElement_1.textContent = "🔊";
+                newElement_2.textContent = "🔊";
+                newElement_1.setAttribute("title", "UnMuted");
+                newElement_2.setAttribute("title", "UnMuted");
             }
         }
-        mySpan.addEventListener("click", spanClickEvent);
+        newElement_1.addEventListener("click", spanClickEvent);
+        //newElement_2.addEventListener("click", spanClickEvent);
 
         document.addEventListener('keydown', function(event) {
             if (event.key === 'm') {
-                mySpan.click();
+                console.info('M');
+                newElement_1.click();
+                //newElement_2.click();
             }
         });
 
+        populateVoiceList();
+
         volumeSlider.addEventListener('input', function() {
-            //console.info('Volume:', volumeSlider.value);
             volume = volumeSlider.value;
             localStorage.setItem('volume', volume);
         });
 
-        waitForElementToExist('body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div > span:nth-child(3)').then(element => {
-            let one = element; // Use the same element for monitoring changes
+
+        waitForElementToExist(score_element).then(selement => {
+            let one = selement;
             monitorChangesBySelector(one, changeCallback);
         });
     });
@@ -117,7 +159,7 @@ function monitorChangesBySelector(targetElement, callback) {
 }
 
 function changeCallback() {
-    let one = document.querySelector("body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div.team-result > div > span:nth-child(3)");
+    let one = document.querySelector(score_element);
     one.style.cursor = "pointer";
     //console.info(one.innerText);
     audioAnnouncer(one.innerText);
@@ -129,7 +171,10 @@ function audioAnnouncer(text) {
         const synth = window.speechSynthesis;
         function speakText(text) {
             const utterance = new SpeechSynthesisUtterance(text);
-            //utterance.lang='en-US';
+            let voiceSelect = document.getElementById('voiceSelect');
+            let voices = window.speechSynthesis.getVoices();
+            let selectedVoice = voices.find(voice => voice.name === voiceSelect.value);
+            utterance.voice = selectedVoice;
             utterance.volume = convertVolume(volume);
             synth.speak(utterance);
         }
@@ -143,10 +188,8 @@ function audioAnnouncer(text) {
 
 function scoreAnnouncer(text) {
     if (text.toLowerCase() === 'over') {
-        const selector1 = 'body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div:nth-child(1) > div.team-content > div.team-score > div > span:nth-child(1)';
-        const selector2 = 'body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div:nth-child(1) > div.team-content > div.team-score > div > span:nth-child(2)';
-        const promise1 = waitForElementToExist(selector1).then(element => element.innerText);
-        const promise2 = waitForElementToExist(selector2).then(element => element.innerText);
+        const promise1 = waitForElementToExist(score_selector1).then(element => element.innerText);
+        const promise2 = waitForElementToExist(score_selector2).then(element => element.innerText);
 
         Promise.all([promise1, promise2])
             .then(([runs_wkt, overs]) => {
@@ -186,5 +229,49 @@ function waitForElementToExist(selector) {
             subtree: true,
             childList: true,
         });
+    });
+}
+
+function getVoices() {
+    return new Promise((resolve, reject) => {
+        if ('speechSynthesis' in window) {
+            let synth = window.speechSynthesis;
+
+            synth.onvoiceschanged = () => {
+                let voices = synth.getVoices();
+                resolve(voices);
+            };
+        } else {
+            reject(new Error('Speech synthesis not supported'));
+        }
+    });
+}
+
+function populateVoiceList() {
+    let voiceSelect = document.getElementById('voiceSelect');
+
+    getVoices()
+        .then(voices => {
+        voices.forEach(voice => {
+            let option = document.createElement('option');
+            option.textContent = voice.name;
+            option.setAttribute('data-lang', voice.lang);
+            option.setAttribute('data-name', voice.name);
+            voiceSelect.appendChild(option);
+        });
+        // Set default voice if selected voice is not found in the list
+        let selectedVoice = localStorage.getItem('selectedVoice');
+        if (selectedVoice) {
+            voiceSelect.value = selectedVoice;
+        }
+    })
+        .catch(error => {
+        console.error('Error retrieving voices:', error);
+    });
+
+    // Event listener to store selected voice in local storage
+    voiceSelect.addEventListener('change', function() {
+        let selectedVoice = voiceSelect.value;
+        localStorage.setItem('selectedVoice', selectedVoice);
     });
 }
