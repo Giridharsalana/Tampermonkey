@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crex Audio
 // @namespace    http://tampermonkey.net/
-// @version      0.5
+// @version      0.55
 // @description  try to take over the world!
 // @author       You
 // @match        https://crex.live/*
@@ -124,13 +124,12 @@ const score_selector2 = 'body > app-root > div > app-match-details > div.live-sc
             }
         }
         newElement_1.addEventListener("click", spanClickEvent);
-        //newElement_2.addEventListener("click", spanClickEvent);
+        newElement_2.addEventListener("click", spanClickEvent);
 
         document.addEventListener('keydown', function(event) {
             if (event.key === 'm') {
                 console.info('M');
                 newElement_1.click();
-                //newElement_2.click();
             }
         });
 
