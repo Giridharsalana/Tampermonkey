@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Crex Audio
 // @namespace    http://tampermonkey.net/
-// @version      0.55
+// @version      0.6
 // @description  try to take over the world!
 // @author       You
 // @match        https://crex.live/*
@@ -116,6 +116,7 @@ const score_selector2 = 'body > app-root > div > app-match-details > div.live-sc
                 newElement_2.textContent = "🔇";
                 newElement_1.setAttribute("title", "Muted");
                 newElement_2.setAttribute("title", "Muted");
+                window.speechSynthesis.cancel();
             } else {
                 newElement_1.textContent = "🔊";
                 newElement_2.textContent = "🔊";
