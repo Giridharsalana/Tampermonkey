@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         Custom Crex
 // @namespace    http://tampermonkey.net/
-// @version      0.85
+// @version      0.9
 // @description  try to take over the world!
 // @author       You
-// @match        https://crex.live/*
+// @match        https://crex.live/scoreboard/*
 // @icon         https://crex.live/assets/icon/favicon.ico
 // @grant        none
 // @run-at       document-idle
@@ -23,11 +23,29 @@ const score_element = 'body > app-root > div > app-match-details > div.live-scor
 const score_selector1 = 'body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div:nth-child(1) > div.team-content > div.team-score > div > span:nth-child(1)';
 const score_selector2 = 'body > app-root > div > app-match-details > div.live-score-header.mob-none > app-match-details-wrapper > div > div > div:nth-child(1) > div.team-content > div.team-score > div > span:nth-child(2)';
 const stream_container = 'body > app-root > div > app-match-details > div.match-detail-route-wrap > div > app-match-live > div > div.live-right-sidebar.m-none';
-const sream_link = '//stream.crichd.vip/update/willowcricket.php';
+const sream_link = 'crex.live';
 
 (function() {
     'use strict';
     waitForElementToExist(stream_container).then(element => {
+        var inputContainer = document.createElement('div');
+        inputContainer.setAttribute('style', 'display: flex; align-items: center; margin-bottom: 10px;');
+
+        var iframe_link = document.createElement('input');
+        iframe_link.setAttribute('type', 'text');
+        iframe_link.setAttribute('placeholder', 'Stream link');
+        iframe_link.setAttribute('id', 'iframeLink');
+        iframe_link.setAttribute('style', 'flex: 1; padding: 5px; box-sizing: border-box;');
+
+        var playButton = document.createElement('button');
+        playButton.setAttribute('type', 'button');
+        playButton.setAttribute('id', 'playButton');
+        playButton.setAttribute('style', 'padding: 5px 10px; margin-left: 5px; cursor: pointer;');
+        playButton.innerHTML = '▶'; // Add play icon (text representation)
+
+        inputContainer.appendChild(iframe_link);
+        inputContainer.appendChild(playButton);
+
         var iframe = document.createElement('iframe');
         iframe.setAttribute('id', 'myFrame');
         iframe.setAttribute('src', sream_link);
@@ -42,8 +60,20 @@ const sream_link = '//stream.crichd.vip/update/willowcricket.php';
         iframe.setAttribute('style', 'height: 205px; border: 5px solid rgba(var(--ce_low_contrast_fg_rgb),.4);');
         var firstElement = element.firstElementChild;
         var clonedElement = firstElement.cloneNode(false);
+
+        clonedElement.appendChild(inputContainer);
         clonedElement.appendChild(iframe);
-        //element.insertBefore(clonedElement, element.firstChild);
+        element.insertBefore(clonedElement, element.firstChild);
+
+        playButton.addEventListener('click', function() {
+            const inputLink = iframe_link.value;
+            if (inputLink) {
+                iframe.setAttribute('src', inputLink);
+            } else {
+                alert('Please enter a valid link.');
+            }
+        });
+
     });
 
     waitForElementToExist(container_div).then(element => {
@@ -150,7 +180,6 @@ const sream_link = '//stream.crichd.vip/update/willowcricket.php';
 
         document.addEventListener('keydown', function(event) {
             if (event.key === 'm') {
-                console.info('M');
                 newElement_1.click();
             }
         });
