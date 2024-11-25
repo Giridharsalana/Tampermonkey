@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom Crex
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.2
 // @description  try to take over the world!
 // @author       You
 // @match        https://crex.live/scoreboard/*
@@ -208,11 +208,37 @@ function monitorChangesBySelector(targetElement, callback) {
     observer.observe(targetElement, config);
 }
 
+function convertRunScoreToText(score) {
+    if (!/^\d+$/.test(score)) {
+        return score;
+    }
+
+    switch (score) {
+        case '0':
+            return "dot";
+        case '1':
+            return "single";
+        case '2':
+            return "double";
+        case '3':
+            return "threeble";
+        case '4':
+            return "four";
+        case '5':
+            return "five runs";
+        case '6':
+            return "six";
+        default:
+            return `${score} runs`;
+    }
+}
+
 function changeCallback() {
     let one = document.querySelector(score_element);
     one.style.cursor = "pointer";
     //console.info(one.innerText);
-    audioAnnouncer(one.innerText);
+    //ballscoreAnnouncer(one.innerText);
+    audioAnnouncer(convertRunScoreToText(one.innerText));
     scoreAnnouncer(one.innerText);
 }
 
@@ -245,6 +271,24 @@ function scoreAnnouncer(text) {
             .then(([runs_wkt, overs]) => {
             //console.info(runs_wkt + ' ' + overs);
             let Score_Script = runs_wkt.replace('-', ' Runs For ') + ' Wickets and ' + parseInt(overs) + ' Overs.'
+            //console.info(Score_Script);
+            audioAnnouncer(Score_Script);
+        })
+            .catch(error => {
+            console.error("Error:", error);
+        });
+    }
+}
+
+function ballscoreAnnouncer(text) {
+    if (text.toLowerCase() === 'ball') {
+        const promise1 = waitForElementToExist(score_selector1).then(element => element.innerText);
+        const promise2 = waitForElementToExist(score_selector2).then(element => element.innerText);
+
+        Promise.all([promise1, promise2])
+            .then(([runs_wkt, overs]) => {
+            //console.info(runs_wkt + ' ' + overs);
+            let Score_Script = overs.replace('.', 'th over') + 'ball'
             //console.info(Score_Script);
             audioAnnouncer(Score_Script);
         })
