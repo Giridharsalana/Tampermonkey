@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Custom Crex
 // @namespace    http://tampermonkey.net/
-// @version      1.4
+// @version      1.5
 // @description  try to take over the world!
 // @author       You
 // @match        https://crex.live/scoreboard/*
@@ -38,11 +38,23 @@ const stream_link = localStorage.getItem('iframelink') || 'crex.live';
         iframe_link.setAttribute('style', 'flex: 1; padding: 5px; box-sizing: border-box;');
         iframe_link.setAttribute('value', stream_link);
 
+        var primaryBg = getComputedStyle(document.documentElement).getPropertyValue('--ce_primary_bg').trim();
+        var primaryTxt = getComputedStyle(document.documentElement).getPropertyValue('--ce_primary_txt').trim();
+        
+        iframe.style.background = primaryBg;
+        iframe.style.color = primaryTxt;
+        iframe.style.borderRadius = '4px';
+        iframe.style.border = `1px solid rgba(var(--ce_low_contrast_fg_rgb), 0.4)`;
+
         var playButton = document.createElement('button');
         playButton.setAttribute('type', 'button');
         playButton.setAttribute('id', 'playButton');
         playButton.setAttribute('style', 'padding: 5px 10px; margin-left: 5px; cursor: pointer;');
         playButton.innerHTML = '▶'; // Add play icon (text representation)
+        playButton.style.background = primaryBg;
+        playButton.style.color = primaryTxt;
+        playButton.style.borderRadius = '4px';
+        playButton.style.border = `1px solid rgba(var(--ce_low_contrast_fg_rgb), 0.4)`;
 
         inputContainer.appendChild(iframe_link);
         inputContainer.appendChild(playButton);
